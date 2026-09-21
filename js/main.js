@@ -1,19 +1,24 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Generic Modal Opener/Closer
+    // Open Modal Function
     window.openModal = function(modalId) {
         const modal = document.getElementById(modalId);
-        if (modal) modal.style.display = 'flex';
-    };
-
-    window.closeModal = function(modalId) {
-        const modal = document.getElementById(modalId);
-        if (modal) modal.style.display = 'none';
-    };
-
-    // Close modal when clicking outside content area
-    window.onclick = function(event) {
-        if (event.target.classList.contains('modal')) {
-            event.target.style.display = 'none';
+        if (modal) {
+            modal.style.display = 'flex';
         }
     };
+
+    // Close Modal Function
+    window.closeModal = function(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    };
+
+    // Global Modal Backdrop Click Handler
+    window.addEventListener('click', (e) => {
+        if (e.target.classList.contains('modal')) {
+            e.target.style.display = 'none';
+        }
+    });
 });

@@ -1,65 +1,73 @@
 <?php
 require_once 'config/database.php';
 
-// CREATE Category
-if (isset($_POST['create_category'])) {
+// 1. CREATE Category
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_category'])) {
     $name = trim($_POST['name']);
     $description = trim($_POST['description']);
     
-    $stmt = $pdo->prepare("INSERT INTO project_category (name, description) VALUES (?, ?)");
-    $stmt->execute([$name, $description]);
+    if (!empty($name)) {
+        $stmt = $pdo->prepare("INSERT INTO project_category (name, description) VALUES (?, ?)");
+        $stmt->execute([$name, $description]);
+    }
     header("Location: categories.php");
     exit;
 }
 
-// UPDATE Category
-if (isset($_POST['update_category'])) {
-    $id = $_POST['id'];
+// 2. UPDATE Category
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_category'])) {
+    $id = intval($_POST['id']);
     $name = trim($_POST['name']);
     $description = trim($_POST['description']);
     
-    $stmt = $pdo->prepare("UPDATE project_category SET name = ?, description = ? WHERE id = ?");
-    $stmt->execute([$name, $description, $id]);
+    if ($id > 0 && !empty($name)) {
+        $stmt = $pdo->prepare("UPDATE project_category SET name = ?, description = ? WHERE id = ?");
+        $stmt->execute([$name, $description, $id]);
+    }
     header("Location: categories.php");
     exit;
 }
 
-// DELETE Category
+// 3. DELETE Category
 if (isset($_GET['delete'])) {
-    $id = $_GET['delete'];
-    $stmt = $pdo->prepare("DELETE FROM project_category WHERE id = ?");
-    $stmt->execute([$id]);
+    $id = intval($_GET['delete']);
+    if ($id > 0) {
+        $stmt = $pdo->prepare("DELETE FROM project_category WHERE id = ?");
+        $stmt->execute([$id]);
+    }
     header("Location: categories.php");
     exit;
 }
 
-// READ Categories
-$categories = $pdo->query("SELECT * FROM project_category ORDER BY id DESC")->fetchAll();
+// 4. READ Categories
+$stmt = $pdo->query("SELECT * FROM project_category ORDER BY id DESC");
+$categories = $stmt->fetchAll();
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Categories - Crowdfunding</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <header class="glass-nav">
         <nav class="container">
-            <div class="logo">CrowdFund</div>
+            <div class="logo">Crowd<span>Fund</span></div>
             <ul>
                 <li><a href="index.php">Projects</a></li>
-                <li><a href="categories.php">Categories</a></li>
+                <li><a href="categories.php" class="active">Categories</a></li>
                 <li><a href="contributors.php">Contributors</a></li>
             </ul>
         </nav>
     </header>
 
     <main class="container">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div class="page-header">
             <h1 class="page-title">Project Categories</h1>
-            <button class="btn btn-primary" onclick="openModal('addModal')">+ Add Category</button>
+            <button class="btn btn-primary" onclick="openModal('addModal')">+ New Category</button>
         </div>
 
         <div class="glass-table-container">
@@ -67,48 +75,54 @@ $categories = $pdo->query("SELECT * FROM project_category ORDER BY id DESC")->fe
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Name</th>
+                        <th>Category Name</th>
                         <th>Description</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($categories as $cat): ?>
-                    <tr>
-                        <td><?= $cat['id'] ?></td>
-                        <td><?= htmlspecialchars($cat['name']) ?></td>
-                        <td><?= htmlspecialchars($cat['description']) ?></td>
-                        <td>
-                            <button class="btn btn-warning" onclick="editCategory(<?= $cat['id'] ?>, '<?= addslashes(htmlspecialchars($cat['name'])) ?>', '<?= addslashes(htmlspecialchars($cat['description'])) ?>')">Edit</button>
-                            <a href="categories.php?delete=<?= $cat['id'] ?>" class="btn btn-danger" onclick="return confirm('Delete category?')">Delete</a>
-                        </td>
-                    </tr>
-                    <?php endforeach; ?>
+                    <?php if (empty($categories)): ?>
+                        <tr>
+                            <td colspan="4" style="text-align: center; color: var(--text-muted);">No categories available. Please add one.</td>
+                        </tr>
+                    <?php else: ?>
+                        <?php foreach ($categories as $cat): ?>
+                        <tr>
+                            <td>#<?= $cat['id'] ?></td>
+                            <td><strong><?= htmlspecialchars($cat['name']) ?></strong></td>
+                            <td><?= htmlspecialchars($cat['description'] ?? 'N/A') ?></td>
+                            <td>
+                                <button class="btn btn-warning" onclick="editCategory(<?= $cat['id'] ?>, '<?= addslashes(htmlspecialchars($cat['name'])) ?>', '<?= addslashes(htmlspecialchars($cat['description'] ?? '')) ?>')">Edit</button>
+                                <a href="categories.php?delete=<?= $cat['id'] ?>" class="btn btn-danger" onclick="return confirm('Deleting this category will also remove all connected projects and contributions. Proceed?')">Delete</a>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </tbody>
             </table>
         </div>
     </main>
 
-    <!-- Modal CREATE -->
+    <!-- Modal: CREATE -->
     <div id="addModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('addModal')">&times;</span>
-            <h2>New Category</h2>
+            <h2>Create New Category</h2>
             <form method="POST">
                 <div class="form-group">
                     <label>Category Name</label>
-                    <input type="text" name="name" required>
+                    <input type="text" name="name" required placeholder="e.g. Technology, Art">
                 </div>
                 <div class="form-group">
                     <label>Description</label>
-                    <textarea name="description" rows="4"></textarea>
+                    <textarea name="description" rows="4" placeholder="Short description of this category..."></textarea>
                 </div>
                 <button type="submit" name="create_category" class="btn btn-primary">Save Category</button>
             </form>
         </div>
     </div>
 
-    <!-- Modal EDIT -->
+    <!-- Modal: EDIT -->
     <div id="editModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('editModal')">&times;</span>
