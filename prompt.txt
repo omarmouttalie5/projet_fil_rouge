@@ -1,0 +1,51 @@
+Role & Task:
+
+Act as a Senior Full-Stack Web Developer. Design and build a complete, production-ready Crowdfunding Platform focused on core CRUD operations across a 3-table database architecture.
+
+Tech Stack & Standards:
+
+Frontend: Semantic HTML5, Modular CSS3, Vanilla JavaScript (DOM manipulation, modal handling).
+
+Backend: Native PHP with PDO (using prepared statements for parameter binding to prevent SQL injection).
+
+Database: MySQL / MariaDB (relational schema using utf8mb4).
+
+Database Schema Architecture:
+
+project_category (id, name, description, created_at)
+
+project (id, title, description, goal_amount, raised_amount, category_id [FK ON DELETE CASCADE], created_at)
+
+contributeur (id, full_name, email, amount, project_id [FK ON DELETE CASCADE], created_at)
+
+Design & UI Requirements:
+
+Style: Dark Mode Glassmorphism (backdrop filters, subtle borders, translucent panels).
+
+Color Palette: Primary Dark Tone #5E548E, Light Tone Accent #BE95C4, Dark Background #0F0C1B.
+
+Components: Responsive navbar, data tables/cards, action buttons, progress bars for campaign goals, and sleek modal dialogs for form inputs.
+
+Key Functional Logic:
+
+Complete CRUD interface for Projects, Categories, and Contributors.
+
+Automatically update the target project's raised_amount upon creating, editing, or deleting a contribution.
+
+Output Deliverable:
+
+Provide clear, modular file outputs:
+
+sql/schema.sql
+
+config/database.php
+
+css/style.css
+
+js/main.js
+
+index.php (Projects dashboard)
+
+categories.php (Category management)
+
+contributors.php (Contributor management)
